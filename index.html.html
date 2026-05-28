@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>🕌 Alaca Mescit Uzaktan Kontrol</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(160deg,#0a0f1e,#0f172a,#0d1321);color:#e2e8f0;min-height:100vh;line-height:1.5}
+.wrap{max-width:540px;margin:0 auto;padding:14px;padding-bottom:80px}
+.hd{text-align:center;padding:12px 0 10px}
+.hd h1{font-size:1.4rem;color:#22c55e;font-weight:800}
+.hd .sub{font-size:.7rem;color:#94a3b8;margin-top:3px}
+.card{background:linear-gradient(145deg,#1e293b,#1a2332);border:1px solid #334155;border-radius:14px;padding:13px;margin-bottom:12px}
+.card h2{font-size:.92rem;color:#22c55e;margin-bottom:10px;font-weight:700}
+.card h3{font-size:.78rem;color:#fde68a;margin:8px 0 5px;font-weight:700}
+.pr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #334155;font-size:.84rem}
+.pr:last-child{border:none}
+.badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:.7rem;font-weight:700}
+.bg-on{background:linear-gradient(135deg,#14532d,#166534);color:#4ade80;box-shadow:0 0 6px #22c55e44}
+.bg-off{background:#1e2a3a;color:#94a3b8}
+.bg-err{background:linear-gradient(135deg,#450a0a,#7f1d1d);color:#fca5a5;animation:blink 2s ease-in-out infinite}
+.bg-info{background:linear-gradient(135deg,#0c4a6e,#075985);color:#bae6fd}
+.bg-warn{background:linear-gradient(135deg,#78350f,#92400e);color:#fed7aa}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+.btn{padding:7px 11px;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;margin:2px;transition:.15s;color:#94a3b8;background:#0c1220;border:1px solid #1e2d42}
+.btn:active{transform:scale(.95)}
+.btn.bg{background:linear-gradient(135deg,#22c55e,#16a34a);color:#052e16;border-color:#22c55e}
+.btn.br{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:#dc2626}
+.btn.by{background:linear-gradient(135deg,#eab308,#ca8a04);color:#1c1917;border-color:#ca8a04}
+.btn.bb{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:#2563eb}
+.btn.sel{background:linear-gradient(135deg,#22c55e,#16a34a)!important;color:#052e16!important;border-color:#22c55e!important;box-shadow:0 0 8px #22c55e66!important}
+.btn.sel-r{background:linear-gradient(135deg,#ef4444,#dc2626)!important;color:#fff!important;border-color:#ef4444!important}
+.btn.sel-y{background:linear-gradient(135deg,#eab308,#ca8a04)!important;color:#1c1917!important;border-color:#eab308!important}
+.btn.sel-o{background:linear-gradient(135deg,#f97316,#ea580c)!important;color:#fff!important;border-color:#f97316!important}
+.row{display:flex;flex-wrap:wrap;gap:3px;margin:4px 0}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.dot.g{background:#22c55e;box-shadow:0 0 6px #22c55e}
+.dot.r{background:#ef4444;box-shadow:0 0 6px #ef4444;animation:blink 1.5s infinite}
+.dot.y{background:#eab308}
+.dot.b{background:#3b82f6}
+.banner{padding:10px 12px;border-radius:10px;margin-bottom:10px;font-weight:700;text-align:center;font-size:.84rem;animation:blink 4s ease-in-out infinite}
+.banner-err{background:linear-gradient(135deg,#7f1d1d,#991b1b);border:2px solid #ef4444;color:#fecaca}
+.banner-warn{background:linear-gradient(135deg,#78350f,#92400e);border:2px solid #f59e0b;color:#fed7aa}
+.log{font-family:monospace;font-size:.68rem;background:#0a0f1e;border:1px solid #1e293b;border-radius:6px;padding:8px;max-height:280px;overflow-y:auto;color:#a3e635}
+.lbl{font-size:.78rem;color:#94a3b8}
+.val{color:#fcd34d;font-weight:700}
+.subgrp{padding:6px 0;border-bottom:1px solid #1e293b}
+.subgrp:last-child{border:none}
+.subgrp-lbl{font-size:.76rem;color:#cbd5e1;margin-bottom:3px;font-weight:600}
+.tabs{display:flex;gap:3px;margin-bottom:12px;flex-wrap:wrap;position:sticky;top:0;background:#0f172a;padding:8px 0;z-index:50}
+.tab{padding:7px 11px;border-radius:8px;font-size:.74rem;font-weight:700;cursor:pointer;border:1px solid #1e2d42;background:#0c1220;color:#64748b}
+.tab.ak{background:linear-gradient(135deg,#22c55e,#16a34a);color:#052e16;border-color:#22c55e}
+.tc{display:none}
+.tc.ak{display:block}
+.pm-row{display:grid;grid-template-columns:1fr auto auto auto;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid #1e2940}
+.pm-row:last-child{border:none}
+.pm-row .lbl{font-size:.82rem;color:#e2e8f0;font-weight:600}
+.pm-btn{padding:5px 9px;border-radius:7px;font-size:.7rem;font-weight:700;border:1px solid #1e2d42;background:#0c1220;color:#64748b;cursor:pointer}
+.pm-btn.sel-oto{background:linear-gradient(135deg,#eab308,#ca8a04);color:#1c1917;border-color:#eab308}
+.pm-btn.sel-ac{background:linear-gradient(135deg,#22c55e,#16a34a);color:#052e16;border-color:#22c55e}
+.pm-btn.sel-kap{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:#ef4444}
+.bk-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1e2940;font-size:.82rem}
+.bk-row:last-child{border:none}
+.tog{padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:700;cursor:pointer;border:1px solid #1e2d42;background:#0c1220;color:#94a3b8}
+.tog.on{background:linear-gradient(135deg,#22c55e,#16a34a);color:#052e16;border-color:#22c55e}
+.tog.off{background:#0c1220;color:#94a3b8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd"><h1>🕌 Alaca Mescit</h1><div class="sub">Uzaktan Kontrol &middot; v2</div></div>
+
+  <div id="banCami" class="banner banner-err" style="display:none">⚠️ CAMİ İLE İRTİBAT YOK</div>
+  <div id="banAvlu" class="banner banner-err" style="display:none">⚠️ AVLU MODÜLÜ İLE İLETİŞİM YOK</div>
+  <div id="banMqtt" class="banner banner-warn" style="display:none">📡 MQTT broker bağlanıyor…</div>
+
+  <div class="card">
+    <h2>📡 Bağlantı</h2>
+    <div class="pr"><span><span class="dot" id="dCami"></span>🕌 Cami</span><span class="badge" id="bCami">--</span></div>
+    <div class="pr"><span><span class="dot" id="dAvlu"></span>🏛️ Avlu</span><span class="badge" id="bAvlu">--</span></div>
+    <div class="pr"><span><span class="dot" id="dEv"></span>🏠 Ev (köprü)</span><span class="badge" id="bEv">--</span></div>
+    <div class="pr"><span><span class="dot" id="dMqtt"></span>☁️ MQTT</span><span class="badge" id="bMqtt">--</span></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab ak" data-t="durum" onclick="tab('durum')">📊 Durum</div>
+    <div class="tab" data-t="kontrol" onclick="tab('kontrol')">🎛️ Kontrol</div>
+    <div class="tab" data-t="ayar" onclick="tab('ayar')">⚙️ Ayarlar</div>
+    <div class="tab" data-t="log" onclick="tab('log')">📋 Log</div>
+  </div>
+
+  <!-- DURUM -->
+  <div class="tc ak" id="t-durum">
+    <div class="card"><h2>📊 Sistem</h2>
+      <div class="pr"><span>🔄 Mod</span><span class="badge" id="bMod">--</span></div>
+      <div class="pr"><span>🛠️ Bakım</span><span class="badge" id="bBak">--</span></div>
+      <div class="pr"><span>🌡️ RTC</span><span class="badge" id="bRtc">--</span></div>
+      <div class="pr"><span>🧍 HLK</span><span class="badge" id="bHlk">--</span></div>
+      <div class="pr"><span>📶 RSSI</span><span class="val" id="vRssi">--</span></div>
+    </div>
+    <div class="card"><h2>💡 Işıklar</h2>
+      <div class="pr"><span>🕌 Minare</span><span class="badge" id="bMn">--</span></div>
+      <div class="pr"><span>🔆 Arka Aplikler</span><span class="badge" id="bAr">--</span></div>
+      <div class="pr"><span>🔅 Sol/Ön/Sağ</span><span class="badge" id="bDv">--</span></div>
+      <div class="pr"><span>💎 Avize Alt</span><span class="badge" id="bAaA">--</span></div>
+      <div class="pr"><span>💎 Avize Üst</span><span class="badge" id="bAaU">--</span></div>
+      <div class="pr"><span>🚪 Kapı</span><span class="badge" id="bKp">--</span></div>
+      <div class="pr"><span>🏛️ Avlu</span><span class="badge" id="bAv">--</span></div>
+      <div class="pr"><span>💧 Şadırvan</span><span class="badge" id="bSd">--</span></div>
+    </div>
+    <div class="card"><h2>🕰️ Bilgi</h2>
+      <div class="pr"><span>📅 Son Ezan</span><span class="val" id="vSonEzan">--</span></div>
+      <div class="pr"><span>🔢 Ezan Sayacı</span><span class="val" id="vEzanSayac">--</span></div>
+    </div>
+  </div>
+
+  <!-- KONTROL -->
+  <div class="tc" id="t-kontrol">
+    <div class="card"><h2>🔄 Çalışma Modu</h2>
+      <div class="row"><button class="btn bg" onclick="setMod('O')">🤖 Otomatik</button>
+      <button class="btn by" onclick="setMod('M')">🖐️ Manuel</button></div>
+    </div>
+    <div class="card"><h2>🎛️ Manuel Kontrol</h2>
+      <div class="lbl" style="margin-bottom:8px">Manuel modda etkili. Tek tek veya toplu.</div>
+      <div id="manuelBtnGrp"></div>
+      <hr style="border:none;border-top:1px solid #334155;margin:10px 0">
+      <div class="row">
+        <button class="btn bg" onclick="manuel('toplu','ac')">✨ TÜMÜ YAK</button>
+        <button class="btn br" onclick="manuel('toplu','kapat')">🔌 TÜMÜ SÖN</button>
+        <button class="btn by" onclick="manuel('toplu','flash')">⚡ TÜMÜ FLASH</button>
+      </div>
+    </div>
+    <div class="card"><h2>🔄 Sistem</h2>
+      <div class="row">
+        <button class="btn bb" onclick="pub('alaca/komut/getdurum','1')">⚡ Durumu Yenile</button>
+        <button class="btn bb" onclick="pub('alaca/komut/ping','1')">📶 Ping</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AYAR -->
+  <div class="tc" id="t-ayar">
+    <div class="card">
+      <h2>🔧 Pin Modları</h2>
+      <div class="lbl" style="margin-bottom:6px">Her ışık için: Otomatik / Hep Açık / Hep Kapalı</div>
+      <div id="pinModBtnGrp"></div>
+    </div>
+
+    <div class="card"><h2>🕌 Minare Offsetleri</h2>
+      <div id="offMinare"></div></div>
+
+    <div class="card"><h2>🔆 Aplikler (Arka grubu)</h2>
+      <div id="offArka"></div></div>
+
+    <div class="card"><h2>🔅 Sol/Ön/Sağ Duvar Aplikleri</h2>
+      <div id="offDuvar"></div></div>
+
+    <div class="card"><h2>🚪 Kapı Üstü</h2>
+      <div id="offKapi"></div></div>
+
+    <div class="card"><h2>🏛️ Avlu</h2>
+      <div id="offAvlu"></div></div>
+
+    <div class="card"><h2>💧 Şadırvan</h2>
+      <div class="lbl" style="margin-bottom:6px">Hangi gün çalışsın:</div>
+      <div id="sdHgGrp" class="row"></div>
+      <div id="offSadirvan"></div></div>
+
+    <div class="card"><h2>💎 Avize (3 Modlu)</h2>
+      <div id="avizeModGrp"></div></div>
+
+    <div class="card"><h2>🎉 Bayram / Kandil</h2>
+      <div id="bayrTogGrp"></div></div>
+
+    <div class="card"><h2>🧍 HLK Sensör</h2>
+      <div id="offHlk"></div></div>
+
+    <div class="card"><h2>🌅 Sabah Ezan Modu</h2>
+      <div class="lbl" style="margin-bottom:6px">Sabah ezanı vakti referansı:</div>
+      <div id="sezGrp" class="row"></div></div>
+
+    <div class="card"><h2>📡 Heartbeat / İrtibat Kontrol</h2>
+      <div id="hbGrp"></div></div>
+
+    <div class="card"><h2>🔔 LoRa Kopma Sesli Uyarı</h2>
+      <div class="lbl" style="margin-bottom:6px">Avlu/Cami kopuk olduğunda buzzer flash hızı:</div>
+      <div id="loraKpFlGrp" class="row"></div></div>
+  </div>
+
+  <!-- LOG -->
+  <div class="tc" id="t-log">
+    <div class="card"><h2>📋 MQTT Log</h2>
+      <div class="log" id="log"></div>
+      <button class="btn" style="margin-top:8px" onclick="document.getElementById('log').innerHTML=''">🗑️ Temizle</button>
+    </div>
+  </div>
+
+  <div id="toast" style="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#22c55e;color:#052e16;padding:9px 18px;border-radius:8px;font-weight:700;font-size:.82rem;box-shadow:0 4px 12px rgba(0,0,0,.4);display:none;z-index:1000"></div>
+</div>
+
+<script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+<script>
+// ============================================================
+// HiveMQ Bilgileri (gömülü)
+// ============================================================
+const MQTT_HOST="9c87593db493444da358558f0df908ed.s1.eu.hivemq.cloud";
+const MQTT_PORT=8884;
+const MQTT_USER="AlacaKontrol";
+const MQTT_PASS="Alaca1598";
+
+// ============================================================
+// Değer setleri (cami'deki ayar butonlarıyla aynı seçenekler)
+// ============================================================
+// ms değer -> etiket
+const MS_HIC      = [[-1,'Hiç yakma'],[0,'0']];
+const MS_SN_KISA  = [[0,'0'],[30000,'30 sn'],[60000,'1 dk'],[120000,'2 dk'],[300000,'5 dk'],[600000,'10 dk']];
+const MS_DK_KISA  = [[0,'0'],[300000,'5 dk'],[600000,'10 dk'],[900000,'15 dk'],[1800000,'30 dk'],[3600000,'1 sa']];
+const MS_DK_GENIS = [[0,'0'],[300000,'5 dk'],[900000,'15 dk'],[1800000,'30 dk'],[2700000,'45 dk'],[3600000,'1 sa'],[5400000,'1.5 sa'],[7200000,'2 sa']];
+const DK_HIC      = [[-1,'Hiç yakma'],[0,'0 dk'],[5,'5 dk'],[10,'10 dk'],[15,'15 dk'],[30,'30 dk'],[45,'45 dk'],[60,'1 sa']];
+const HB_PER      = [[15000,'15 sn'],[30000,'30 sn'],[60000,'1 dk'],[120000,'2 dk'],[300000,'5 dk']];
+const HB_TO       = [[60000,'1 dk'],[120000,'2 dk'],[180000,'3 dk'],[300000,'5 dk'],[600000,'10 dk'],[900000,'15 dk']];
+const HLK_BEK     = [[5000,'5 sn'],[15000,'15 sn'],[30000,'30 sn'],[60000,'1 dk'],[120000,'2 dk'],[300000,'5 dk'],[600000,'10 dk'],[900000,'15 dk']];
+const LORA_KP     = [[0,'Uyarı verme'],[100,'100ms'],[200,'200ms'],[300,'300ms'],[500,'500ms'],[700,'700ms'],[1000,'1000ms']];
+
+// ============================================================
+// Buton Grubu Tanımları — UI render edilirken kullanılıyor
+// ============================================================
+// {key: SET key, label, opts: [[val,label],...], stateKey: lastState'ten okunacak field, mult: çarpan}
+const OFFSET_GROUPS = {
+  // Minare
+  offMinare:[
+    {key:'yan', label:'⏱️ Akşam yanma offset',  opts:MS_SN_KISA, stateKey:'mYG'},
+    {key:'son', label:'⏱️ Sabah sönme offset',  opts:MS_SN_KISA, stateKey:'mSG'},
+  ],
+  // Aplikler (arka grubu) — int dk
+  offArka:[
+    {key:'arS', label:'🌅 Sabah önce aç (dk)', opts:DK_HIC, stateKey:'arkSO', isDk:true},
+    {key:'icA', label:'🌇 Akşam önce aç (dk)', opts:DK_HIC, stateKey:'arkAO', isDk:true},
+    {key:'icSK',label:'⏱️ Sabah sonra kapat',    opts:MS_DK_KISA, stateKey:'icSK'},
+    {key:'dvKS',label:'⏱️ Yatsı sonra kapat',    opts:MS_DK_GENIS, stateKey:'duvKS'},
+  ],
+  // Sol/On/Sag (duvar)
+  offDuvar:[
+    {key:'dvS', label:'⏱️ Akşam sonra kapat',  opts:MS_DK_KISA, stateKey:'duvSonAks'},
+    {key:'dvY', label:'⏱️ Yatsı önce aç', opts:[[-1,'Hiç yakma'],...MS_DK_KISA], stateKey:'duvYO'},
+  ],
+  // Kapi
+  offKapi:[
+    {key:'kpA', label:'🌇 Akşam offset', opts:[[-1,'Hiç yakma'],...MS_DK_KISA], stateKey:'kAO'},
+    {key:'kpS', label:'🌅 Sabah offset', opts:MS_DK_KISA, stateKey:'kSO'},
+  ],
+  // Avlu
+  offAvlu:[
+    {key:'avA',  label:'🌇 Akşam aç', opts:[[-1,'Hiç yakma'],...MS_DK_GENIS], stateKey:'aAG'},
+    {key:'avK',  label:'⏱️ Yatsı sonra kapat', opts:MS_DK_GENIS, stateKey:'aKS'},
+    {key:'avSb', label:'🌅 Sabah aç', opts:[[-1,'Hiç yakma'],...MS_DK_GENIS], stateKey:'bayAvlAcMs'},
+  ],
+  // Sadirvan 8 offset
+  offSadirvan:[
+    {key:'sdAkO',  label:'🌇 Akşam ÖNCE',   opts:MS_DK_KISA, stateKey:'sdAkO'},
+    {key:'sdAkS',  label:'🌇 Akşam SONRA',  opts:MS_DK_KISA, stateKey:'sdAkS'},
+    {key:'sdYtO',  label:'🌃 Yatsı ÖNCE',   opts:MS_DK_KISA, stateKey:'sdYtO'},
+    {key:'sdYtS',  label:'🌃 Yatsı SONRA',  opts:MS_DK_KISA, stateKey:'sdYtS'},
+    {key:'sdSbO',  label:'🌅 Sabah ÖNCE',   opts:MS_DK_KISA, stateKey:'sdSbO'},
+    {key:'sdSbS',  label:'🌅 Sabah SONRA',  opts:MS_DK_KISA, stateKey:'sdSbS'},
+    {key:'sdBySO', label:'🎉 Bayram sabah ÖNCE',  opts:MS_DK_KISA, stateKey:'sdBySO'},
+    {key:'sdBySS', label:'🎉 Bayram sabah SONRA', opts:MS_DK_KISA, stateKey:'sdBySS'},
+  ],
+  // HLK
+  offHlk:[
+    {key:'hbek', label:'⏱️ Boş kalma süresi (sonra kapat)', opts:HLK_BEK, stateKey:'hlkBek'},
+  ],
+  // Heartbeat
+  hbGrp:[
+    {key:'hbPer', label:'📡 PING gönderim periyodu', opts:HB_PER, stateKey:'hbPer'},
+    {key:'hbTo',  label:'🚨 Avlu Timeout (kopuk algılama)', opts:HB_TO, stateKey:'hbTo'},
+    {key:'evTo',  label:'🏠 Ev Timeout (info, buzzersiz)', opts:HB_TO, stateKey:'evTo'},
+  ]
+};
+
+// Pin Mod grupları — 8 grup
+const PIN_GROUPS = [
+  ['minare','🕌 Minare','pmMin'],
+  ['arka','🔆 Arka Aplikler','pmArk'],
+  ['duvar','🔅 Sol/Ön/Sağ','pmDuv'],
+  ['avlu','🏛️ Avlu','pmAvl'],
+  ['kapi','🚪 Kapı','pmKap'],
+  ['avizeAlt','💎 Avize Alt','pmAvAl'],
+  ['avizeUst','💎 Avize Üst','pmAvUs'],
+  ['sadirvan','💧 Şadırvan','pmSd'],
+];
+
+// Manuel kontrol grupları — 8 grup × 3 aksiyon
+const MANUEL_GROUPS = [
+  ['minare','🕌 Minare'],
+  ['arka','🔆 Arka'],
+  ['duvar','🔅 Sol/Ön/Sağ'],
+  ['avlu','🏛️ Avlu'],
+  ['kapi','🚪 Kapı'],
+  ['avizeAlt','💎 Avize Alt'],
+  ['avizeUst','💎 Avize Üst'],
+  ['sadirvan','💧 Şadırvan'],
+];
+
+// Avize 3-modlu (0=Hiç açma, 1=Her gün, 2=Perşembe)
+const AVIZE_NM_OPTS = [[0,'Hiç açma'],[1,'Her gün'],[2,'Perşembe']];
+
+// Bayram/Kandil toggle'ları
+const BAYR_TOGGLES = [
+  ['bymin','🕌 Bayramda minare açık','bayMinAcik'],
+  ['kanmin','🕌 Kandilde minare açık','kanMinAcik'],
+  ['byav','🏛️ Bayramda avlu açık','bayAvlAcik'],
+  ['kanav','🏛️ Kandilde avlu açık','kanAvlAcik'],
+  ['bysd','💧 Bayramda şadırvan açık','bySdAc'],
+  ['kansd','💧 Kandilde şadırvan açık','knSdAc'],
+  ['byaA','💎 Bayramda avize alt açık','avAlBay'],
+  ['kanaA','💎 Kandilde avize alt açık','avAlKan'],
+  ['byaU','💎 Bayramda avize üst açık','avUsBay'],
+  ['kanaU','💎 Kandilde avize üst açık','avUsKan'],
+  ['byrSdAk','💧 Şadırvan bayramda akşam',null],
+  ['byrSdYt','💧 Şadırvan bayramda yatsı',null],
+  ['byrSdSb','💧 Şadırvan bayramda sabah',null],
+  ['knSdAk','💧 Şadırvan kandilde akşam',null],
+  ['knSdYt','💧 Şadırvan kandilde yatsı',null],
+  ['knSdSb','💧 Şadırvan kandilde sabah',null],
+];
+
+// Şadırvan hangi gün
+const SD_HG_OPTS = [[0,'📅 Sadece Cuma'],[1,'📆 Her gün'],[2,'❌ Hiçbiri']];
+
+// Sabah ezan modu
+const SEZ_OPTS = [[0,'⏰ İmsak vakti (normal)'],[1,'☀️ Güneşten 1 saat önce']];
+
+// ============================================================
+// State
+// ============================================================
+let client=null, mqttBagli=false, lastState={}, lastLink={};
+
+// ============================================================
+// Helper'lar
+// ============================================================
+const log_ = (m, t="info") => {
+  const tm = new Date().toTimeString().slice(0,8);
+  const c = t==="err"?"#fca5a5":t==="ok"?"#86efac":t==="rx"?"#bae6fd":"#a3e635";
+  const e = document.getElementById("log");
+  e.innerHTML = '<div style="color:'+c+'">'+tm+" "+esc(m)+"</div>"+e.innerHTML;
+  if(e.children.length>200) e.removeChild(e.lastChild);
+};
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const toast = m => {const e=document.getElementById("toast");e.textContent=m;e.style.display="block";setTimeout(()=>e.style.display="none",1500);};
+const setBadge = (id, txt, cls) => {const e=document.getElementById(id);if(!e)return;e.textContent=txt;e.className="badge "+cls;};
+
+// ============================================================
+// UI Render
+// ============================================================
+function renderOffsetGrp(containerId, items){
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  let html = "";
+  items.forEach(item => {
+    html += '<div class="subgrp">';
+    html += '<div class="subgrp-lbl">'+esc(item.label)+'</div>';
+    html += '<div class="row" data-key="'+item.key+'" data-statekey="'+item.stateKey+'"'+(item.isDk?' data-isdk="1"':'')+'>';
+    item.opts.forEach(([v,lab]) => {
+      html += '<button class="btn off-btn" data-val="'+v+'">'+esc(lab)+'</button>';
+    });
+    html += '</div></div>';
+  });
+  c.innerHTML = html;
+}
+
+function renderPinMod(){
+  const c = document.getElementById("pinModBtnGrp");
+  let html = "";
+  PIN_GROUPS.forEach(([k,lab,sk]) => {
+    html += '<div class="pm-row" data-pin="'+k+'" data-statekey="'+sk+'">';
+    html += '<span class="lbl">'+esc(lab)+'</span>';
+    html += '<button class="pm-btn" data-val="0">Oto</button>';
+    html += '<button class="pm-btn" data-val="1">AÇ</button>';
+    html += '<button class="pm-btn" data-val="2">KAP</button>';
+    html += '</div>';
+  });
+  c.innerHTML = html;
+}
+
+function renderManuel(){
+  const c = document.getElementById("manuelBtnGrp");
+  let html = "";
+  MANUEL_GROUPS.forEach(([k,lab]) => {
+    html += '<div class="pm-row" style="grid-template-columns:1fr auto auto auto" data-grp="'+k+'">';
+    html += '<span class="lbl">'+esc(lab)+'</span>';
+    html += '<button class="m-btn bg" data-akt="ac">YAK</button>';
+    html += '<button class="m-btn br" data-akt="kapat">SÖN</button>';
+    html += '<button class="m-btn by" data-akt="flash">⚡</button>';
+    html += '</div>';
+  });
+  c.innerHTML = html;
+  document.querySelectorAll(".m-btn").forEach(b => {
+    b.classList.add("btn");
+    b.addEventListener("click", () => {
+      const grp = b.closest('.pm-row').dataset.grp;
+      pub("alaca/komut/set","m="+grp+":"+b.dataset.akt);
+      toast(grp+":"+b.dataset.akt);
+    });
+  });
+}
+
+function renderSimpleBtnGrp(containerId, key, opts, stateKey){
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  c.dataset.key = key;
+  c.dataset.statekey = stateKey;
+  let html = "";
+  opts.forEach(([v,lab]) => {
+    html += '<button class="btn simp-btn" data-val="'+v+'">'+esc(lab)+'</button>';
+  });
+  c.innerHTML = html;
+}
+
+function renderBayrToggles(){
+  const c = document.getElementById("bayrTogGrp");
+  let html = "";
+  BAYR_TOGGLES.forEach(([k,lab,sk]) => {
+    html += '<div class="bk-row" data-key="'+k+'"'+(sk?' data-statekey="'+sk+'"':'')+'>';
+    html += '<span>'+esc(lab)+'</span>';
+    html += '<button class="tog off" data-val="1">AÇIK</button>';
+    html += '</div>';
+  });
+  c.innerHTML = html;
+  // Click handler
+  c.querySelectorAll(".tog").forEach(b => {
+    b.addEventListener("click", () => {
+      const row = b.closest(".bk-row");
+      const key = row.dataset.key;
+      // Toggle
+      const newVal = b.classList.contains("on") ? "0" : "1";
+      pub("alaca/komut/set", key+"="+newVal);
+      toast(key+"="+newVal);
+    });
+  });
+}
+
+function renderAvizeMod(){
+  const c = document.getElementById("avizeModGrp");
+  let html = "";
+  ['aANm','aUNm'].forEach((k,i) => {
+    const lab = i===0?"💎 Avize ALT normal mod:":"💎 Avize ÜST normal mod:";
+    html += '<div class="subgrp"><div class="subgrp-lbl">'+lab+'</div>';
+    html += '<div class="row" data-key="'+k+'" data-statekey="'+(k==='aANm'?'avAlNm':'avUsNm')+'">';
+    AVIZE_NM_OPTS.forEach(([v,lab]) => {
+      html += '<button class="btn off-btn" data-val="'+v+'">'+esc(lab)+'</button>';
+    });
+    html += '</div></div>';
+  });
+  c.innerHTML = html;
+}
+
+function renderInit(){
+  // Offset grupları
+  Object.keys(OFFSET_GROUPS).forEach(id => renderOffsetGrp(id, OFFSET_GROUPS[id]));
+  // Pin mod
+  renderPinMod();
+  // Manuel
+  renderManuel();
+  // Şadırvan hangi gün
+  renderSimpleBtnGrp("sdHgGrp","sdHg",SD_HG_OPTS,"sdHg");
+  // Sabah ezan modu
+  renderSimpleBtnGrp("sezGrp","sez",SEZ_OPTS,"sbn");
+  // LoRa kopma flash
+  renderSimpleBtnGrp("loraKpFlGrp","loraKpFlsh",LORA_KP,"loraKpFlsh");
+  // Bayram/kandil
+  renderBayrToggles();
+  // Avize mod
+  renderAvizeMod();
+
+  // Tek tıklama event handler — tüm offset & simp & pinmod
+  document.body.addEventListener("click", (e) => {
+    // Offset buton
+    if(e.target.matches(".off-btn") || e.target.matches(".simp-btn")){
+      const row = e.target.closest("[data-key]");
+      if(!row) return;
+      const key = row.dataset.key;
+      const val = e.target.dataset.val;
+      pub("alaca/komut/set", key+"="+val);
+      toast(key+"="+val);
+    }
+    // Pin mod buton
+    if(e.target.matches(".pm-btn")){
+      const row = e.target.closest(".pm-row");
+      const pin = row.dataset.pin;
+      const val = e.target.dataset.val;
+      pub("alaca/komut/set", "pm="+pin+":"+val);
+      toast(pin+" → mod "+val);
+    }
+  });
+}
+
+// ============================================================
+// Buton vurgulama (seçili olanı vurgula)
+// ============================================================
+function refreshSelections(){
+  // Offset gruplari
+  document.querySelectorAll("[data-statekey]").forEach(row => {
+    const sk = row.dataset.statekey;
+    if(!sk || lastState[sk] === undefined) return;
+    const cur = String(lastState[sk]);
+    // Off butonlar
+    row.querySelectorAll(".off-btn, .simp-btn").forEach(b => {
+      b.classList.toggle("sel", b.dataset.val === cur);
+    });
+  });
+  // Pin mod butonlar
+  PIN_GROUPS.forEach(([k,lab,sk]) => {
+    const row = document.querySelector('.pm-row[data-pin="'+k+'"]');
+    if(!row) return;
+    const cur = lastState[sk];
+    if(cur === undefined) return;
+    row.querySelectorAll(".pm-btn").forEach(b => {
+      b.classList.remove("sel-oto","sel-ac","sel-kap");
+      if(b.dataset.val === cur){
+        if(cur==="0") b.classList.add("sel-oto");
+        else if(cur==="1") b.classList.add("sel-ac");
+        else if(cur==="2") b.classList.add("sel-kap");
+      }
+    });
+  });
+  // Bayram togglelar
+  document.querySelectorAll(".bk-row[data-statekey] .tog").forEach(b => {
+    const row = b.closest(".bk-row");
+    const sk = row.dataset.statekey;
+    const cur = lastState[sk];
+    if(cur === "true" || cur === "1"){
+      b.classList.add("on"); b.classList.remove("off"); b.textContent = "AÇIK";
+    } else if(cur === "false" || cur === "0"){
+      b.classList.remove("on"); b.classList.add("off"); b.textContent = "KAPALI";
+    }
+  });
+}
+
+// ============================================================
+// State Parse + Güncelle
+// ============================================================
+function parseState(msg){
+  const obj = {};
+  msg.split(",").forEach(kv => {
+    const eq = kv.indexOf("=");
+    if(eq > 0) obj[kv.substring(0,eq).trim()] = kv.substring(eq+1).trim();
+  });
+  lastState = obj;
+  guncelleDurum();
+  refreshSelections();
+}
+function parseLink(msg){
+  const obj = {};
+  msg.split(",").forEach(kv => {
+    const eq = kv.indexOf("=");
+    if(eq > 0) obj[kv.substring(0,eq).trim()] = kv.substring(eq+1).trim();
+  });
+  lastLink = obj;
+  guncelleBaglanti();
+}
+function guncelleBaglanti(){
+  ["cami","avlu","ev"].forEach(n => {
+    const v = lastLink[n] || "--";
+    const id = "b"+n.charAt(0).toUpperCase()+n.slice(1);
+    const dId = "d"+n.charAt(0).toUpperCase()+n.slice(1);
+    const banId = "ban"+n.charAt(0).toUpperCase()+n.slice(1);
+    if(v === "BAGLI"){
+      setBadge(id, "BAĞLI", "bg-on");
+      document.getElementById(dId).className = "dot g";
+      const ban = document.getElementById(banId); if(ban) ban.style.display = "none";
+    } else if(v === "KOPUK"){
+      setBadge(id, n==="ev"?"YOK / KOPUK":"KOPUK", n==="ev"?"bg-info":"bg-err");
+      document.getElementById(dId).className = n==="ev"?"dot b":"dot r";
+      const ban = document.getElementById(banId); if(ban && n!=="ev") ban.style.display = "block";
+    }
+  });
+}
+function guncelleDurum(){
+  const s = lastState;
+  setBadge("bMod", s.mod==="M"?"🖐️ MANUEL":s.mod==="O"?"🤖 OTOMATİK":"--",
+           s.mod==="M"?"bg-warn":s.mod==="O"?"bg-on":"bg-off");
+  setBadge("bBak", s.bak==="1"?"⚠️ AÇIK":"Kapalı", s.bak==="1"?"bg-warn":"bg-off");
+  setBadge("bRtc", s.rtc==="1"?"ARIZA":"OK", s.rtc==="1"?"bg-err":"bg-on");
+  setBadge("bHlk", s.hlk==="1"?"VAR":"YOK", s.hlk==="1"?"bg-on":"bg-off");
+  document.getElementById("vRssi").textContent = (s.rssi||"--")+" dBm";
+  const lp = (id, k) => setBadge(id, s[k]==="1"?"AÇIK":"Kapalı", s[k]==="1"?"bg-on":"bg-off");
+  lp("bMn","mn"); lp("bAr","ar"); lp("bDv","dv"); lp("bAaA","aA");
+  lp("bAaU","aU"); lp("bKp","kp"); lp("bAv","av"); lp("bSd","sd");
+  if(s.ezanSayac) document.getElementById("vEzanSayac").textContent = s.ezanSayac;
+  if(s.sonEzan) document.getElementById("vSonEzan").textContent = s.sonEzan;
+}
+
+// ============================================================
+// MQTT
+// ============================================================
+function bagla(){
+  document.getElementById("banMqtt").style.display = "block";
+  setBadge("bMqtt","BAĞLANIYOR","bg-warn");
+  document.getElementById("dMqtt").className = "dot y";
+  log_("MQTT bağlanılıyor: "+MQTT_HOST+":"+MQTT_PORT);
+  client = mqtt.connect("wss://"+MQTT_HOST+":"+MQTT_PORT+"/mqtt", {
+    username:MQTT_USER, password:MQTT_PASS,
+    clientId:"AlacaPanel_"+Math.random().toString(16).substr(2,8),
+    keepalive:30, clean:true, reconnectPeriod:5000, connectTimeout:10000
+  });
+  client.on("connect", () => {
+    mqttBagli=true; log_("MQTT BAĞLI","ok");
+    document.getElementById("banMqtt").style.display="none";
+    setBadge("bMqtt","BAĞLI","bg-on");
+    document.getElementById("dMqtt").className="dot g";
+    client.subscribe("alaca/durum/+");
+  });
+  client.on("error", e => log_("HATA: "+e.message,"err"));
+  client.on("offline", () => {
+    mqttBagli=false; log_("OFFLINE","err");
+    setBadge("bMqtt","OFFLINE","bg-err");
+    document.getElementById("dMqtt").className="dot r";
+    document.getElementById("banMqtt").style.display="block";
+  });
+  client.on("message", (topic, payload) => {
+    const msg = payload.toString();
+    log_("← "+topic+": "+msg.substring(0,80),"rx");
+    if(topic==="alaca/durum/state") parseState(msg);
+    else if(topic==="alaca/durum/link") parseLink(msg);
+    else if(topic==="alaca/durum/ack") toast("✓ "+msg);
+  });
+}
+function pub(topic, payload){
+  if(!client || !mqttBagli){ toast("MQTT bağlı değil!"); return; }
+  client.publish(topic, String(payload));
+  log_("→ "+topic+": "+payload);
+}
+function setMod(m){ pub("alaca/komut/set","mod="+m); toast("Mod → "+(m==="M"?"Manuel":"Otomatik")); }
+function manuel(g,a){ pub("alaca/komut/set","m="+g+":"+a); toast(g+":"+a); }
+function tab(t){
+  document.querySelectorAll(".tab").forEach(e=>e.classList.toggle("ak",e.dataset.t===t));
+  document.querySelectorAll(".tc").forEach(e=>e.classList.toggle("ak",e.id==="t-"+t));
+}
+
+// ============================================================
+// Init
+// ============================================================
+renderInit();
+bagla();
+setTimeout(()=>{ if(mqttBagli) pub("alaca/komut/getdurum","1"); }, 2000);
+</script>
+</body>
+</html>
